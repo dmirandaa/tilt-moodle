@@ -51,6 +51,7 @@ tilt version
 | pgAdmin       | http://localhost:8082                          | Login: `PGADMIN_EMAIL` / `PGADMIN_PASSWORD` from `.env` |
 | MySQL 8       | localhost:3306                                 |                                                         |
 | PostgreSQL 16 | localhost:5432                                 |                                                         |
+| Redis 7       | localhost:6379                                 | Session/cache backend — always started                  |
 | Moodle 4.5 ¹  | http://localhost:8090 · https://localhost:8453 | On-demand — PHP 8.2, branch `MOODLE_405_STABLE`         |
 | Moodle 5.2 ¹  | http://localhost:8091 · https://localhost:8454 | On-demand — PHP 8.3, branch `MOODLE_502_STABLE`         |
 
@@ -118,6 +119,41 @@ To switch to **PostgreSQL**, update `.env`:
 MOODLE_DB_TYPE=pgsql
 MOODLE_DB_HOST=postgres
 MOODLE_DB_PORT=5432
+```
+
+## Redis Session Cache
+
+A **Redis 7** container is always started on `tilt up` and joins the same `moodle_net`
+network, making it available to all Moodle instances at hostname `redis`.
+
+By default Moodle still uses its **file-based** session handler. To switch to Redis,
+set the following in `.env` **before** starting a Moodle instance for the first time,
+or before removing and recreating its `moodle_config` volume:
+
+```env
+MOODLE_REDIS_SESSION=true
+```
+
+On container startup the entrypoint injects the required `$CFG->session_redis_*` lines
+into `config.php` automatically. The injection is **idempotent** — it is skipped if the
+settings are already present, so it is safe across restarts.
+
+| Variable               | Default | Description                                          |
+| ---------------------- | ------- | ---------------------------------------------------- |
+| `MOODLE_REDIS_SESSION` | `false` | Set to `true` to enable the Redis session handler    |
+| `MOODLE_REDIS_HOST`    | `redis` | Redis hostname (container name on `moodle_net`)      |
+| `MOODLE_REDIS_PORT`    | `6379`  | Redis port                                           |
+| `REDIS_PORT`           | `6379`  | Host-side port exposed by the Redis container        |
+
+> **Enabling Redis on an already-installed instance** — if the instance was previously
+> started without Redis, set `MOODLE_REDIS_SESSION=true` and restart the container.
+> The entrypoint will inject the Redis settings into the persisted `config.php` on the
+> next boot without re-running the full installer.
+
+To connect to Redis directly from the host:
+
+```bash
+docker exec -it moodle_redis redis-cli ping
 ```
 
 ## config.php Persistence

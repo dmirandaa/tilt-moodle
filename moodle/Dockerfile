@@ -64,6 +64,11 @@ RUN PHP_MAJOR=$(php -r 'echo PHP_MAJOR_VERSION;') && \
     zip \
     $EXTRA_EXTS
 
+# ── phpredis (session and cache backend for Redis) ───────────────────────────
+RUN pecl install redis \
+    && docker-php-ext-enable redis \
+    && rm -rf /tmp/pear
+
 # ── Apache ────────────────────────────────────────────────────────────────────
 RUN a2enmod rewrite headers ssl socache_shmcb
 

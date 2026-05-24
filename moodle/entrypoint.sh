@@ -28,10 +28,50 @@ DB_PASS="${MOODLE_DB_PASSWORD:-moodlepassword}"
 DB_PREFIX="${MOODLE_DB_PREFIX:-mdl_}"
 WWWROOT="${MOODLE_WWWROOT:-http://localhost:8080}"
 ADMIN_USER="${MOODLE_ADMIN_USER:-admin}"
-ADMIN_PASS="${MOODLE_ADMIN_PASSWORD:-P@ssw0rd}"
+ADMIN_PASS="${MOODLE_ADMIN_PASSWORD:-password!}"
 ADMIN_EMAIL="${MOODLE_ADMIN_EMAIL:-admin@example.com}"
 SITE_NAME="${MOODLE_SITE_NAME:-Moodle LMS}"
 SITE_SHORTNAME="${MOODLE_SITE_SHORTNAME:-moodle}"
+REDIS_ENABLED="${MOODLE_REDIS_SESSION:-false}"
+REDIS_HOST="${MOODLE_REDIS_HOST:-redis}"
+REDIS_PORT="${MOODLE_REDIS_PORT:-6379}"
+
+# ── Inject Redis session config into config.php (idempotent) ─────────────────
+inject_redis_session() {
+    local config_file="$1"
+    if grep -q 'session_handler_class' "${config_file}" 2>/dev/null; then
+        echo "[moodle] Redis session config already present — skipping."
+        return
+    fi
+    echo "[moodle] Injecting Redis session config into config.php ..."
+    local tmp_block tmp_out
+    tmp_block=$(mktemp)
+    tmp_out=$(mktemp)
+    cat > "${tmp_block}" << EOF
+// ── Redis session store ──────────────────────────────────────────────────────
+\$CFG->session_handler_class              = '\core\session\redis';
+\$CFG->session_redis_host                 = '${REDIS_HOST}';
+\$CFG->session_redis_port                 = ${REDIS_PORT};
+\$CFG->session_redis_database             = 0;
+\$CFG->session_redis_auth                 = '';
+\$CFG->session_redis_acquire_lock_timeout = 120;
+\$CFG->session_redis_lock_expire          = 7200;
+
+EOF
+    awk -v block="${tmp_block}" '
+        /require_once\(/ && !done {
+            while ((getline line < block) > 0) print line
+            close(block)
+            done=1
+        }
+        { print }
+    ' "${config_file}" > "${tmp_out}"
+    mv "${tmp_out}" "${config_file}"
+    rm -f "${tmp_block}"
+    chown www-data:www-data "${config_file}"
+    chmod 640 "${config_file}"
+    echo "[moodle] Redis session config injected."
+}
 
 # ── Wait for database ─────────────────────────────────────────────────────────
 wait_for_db() {
@@ -109,6 +149,11 @@ else
     ln -sf "${MOODLE_CONFIG}" "${MOODLE_CONFIG_LINK}"
 
     echo "[moodle] Installation complete."
+fi
+
+# ── Optionally enable Redis session backend ───────────────────────────────────
+if [ "${REDIS_ENABLED}" = "true" ]; then
+    inject_redis_session "${MOODLE_CONFIG}"
 fi
 
 # Ensure config.php in the volume is always readable by www-data,

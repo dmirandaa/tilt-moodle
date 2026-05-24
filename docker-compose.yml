@@ -77,6 +77,8 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       MOODLE_DB_TYPE: ${MOODLE_DB_TYPE:-mysqli}
       MOODLE_DB_HOST: ${MOODLE_DB_HOST:-mysql}
@@ -91,6 +93,9 @@ services:
       MOODLE_ADMIN_EMAIL: ${MOODLE_ADMIN_EMAIL:-admin@example.com}
       MOODLE_SITE_NAME: "Moodle 3.8"
       MOODLE_SITE_SHORTNAME: moodle38
+      MOODLE_REDIS_SESSION: ${MOODLE_REDIS_SESSION:-false}
+      MOODLE_REDIS_HOST: ${MOODLE_REDIS_HOST:-redis}
+      MOODLE_REDIS_PORT: ${MOODLE_REDIS_PORT:-6379}
     volumes:
       - moodle38_data:/var/www/moodledata
       - moodle38_config:/var/www/moodle_config
@@ -118,6 +123,8 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       MOODLE_DB_TYPE: ${MOODLE_DB_TYPE:-mysqli}
       MOODLE_DB_HOST: ${MOODLE_DB_HOST:-mysql}
@@ -132,6 +139,9 @@ services:
       MOODLE_ADMIN_EMAIL: ${MOODLE_ADMIN_EMAIL:-admin@example.com}
       MOODLE_SITE_NAME: "Moodle 4.5"
       MOODLE_SITE_SHORTNAME: moodle45
+      MOODLE_REDIS_SESSION: ${MOODLE_REDIS_SESSION:-false}
+      MOODLE_REDIS_HOST: ${MOODLE_REDIS_HOST:-redis}
+      MOODLE_REDIS_PORT: ${MOODLE_REDIS_PORT:-6379}
     volumes:
       - moodle45_data:/var/www/moodledata
       - moodle45_config:/var/www/moodle_config
@@ -159,6 +169,8 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       MOODLE_DB_TYPE: ${MOODLE_DB_TYPE:-mysqli}
       MOODLE_DB_HOST: ${MOODLE_DB_HOST:-mysql}
@@ -173,6 +185,9 @@ services:
       MOODLE_ADMIN_EMAIL: ${MOODLE_ADMIN_EMAIL:-admin@example.com}
       MOODLE_SITE_NAME: "Moodle 5.2"
       MOODLE_SITE_SHORTNAME: moodle52
+      MOODLE_REDIS_SESSION: ${MOODLE_REDIS_SESSION:-false}
+      MOODLE_REDIS_HOST: ${MOODLE_REDIS_HOST:-redis}
+      MOODLE_REDIS_PORT: ${MOODLE_REDIS_PORT:-6379}
     volumes:
       - moodle52_data:/var/www/moodledata
       - moodle52_config:/var/www/moodle_config
@@ -181,6 +196,25 @@ services:
       - "${MOODLE52_HTTPS_PORT:-8454}:443"
     networks:
       - moodle_net
+
+  # ── Redis ──────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: moodle_redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - moodle_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   # ── phpMyAdmin ─────────────────────────────────────────────────────────────
   phpmyadmin:
@@ -234,3 +268,4 @@ volumes:
   moodle52_data:
   moodle52_config:
   pgadmin_data:
+  redis_data:

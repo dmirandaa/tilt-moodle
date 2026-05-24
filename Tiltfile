@@ -5,6 +5,7 @@
 # Services started automatically on `tilt up`:
 #   • mysql       — MySQL 8                             → localhost:3306
 #   • postgres    — PostgreSQL 16                       → localhost:5432
+#   • redis        — Redis 7                             → localhost:6379
 #   • phpmyadmin  — phpMyAdmin (MySQL admin UI)         → http://localhost:8081
 #   • pgadmin     — pgAdmin 4 (PostgreSQL admin UI)     → http://localhost:8082
 #
@@ -37,6 +38,11 @@ dc_resource(
     labels=['databases'],
 )
 
+dc_resource(
+    'redis',
+    labels=['databases'],
+)
+
 # ── Moodle Instances (on-demand) ─────────────────────────────────────────────
 # auto_init=False  — not started by `tilt up`
 # TRIGGER_MODE_MANUAL — not rebuilt automatically on file changes
@@ -50,7 +56,7 @@ dc_resource(
     labels=['application'],
     auto_init=False,
     trigger_mode=TRIGGER_MODE_MANUAL,
-    resource_deps=['mysql', 'postgres'],
+    resource_deps=['mysql', 'postgres', 'redis'],
     links=[
         link('http://localhost:8080',  'Moodle 3.8'),
         link('https://localhost:8443', 'Moodle 3.8 (HTTPS)'),
@@ -62,7 +68,7 @@ dc_resource(
     labels=['application'],
     auto_init=False,
     trigger_mode=TRIGGER_MODE_MANUAL,
-    resource_deps=['mysql', 'postgres'],
+    resource_deps=['mysql', 'postgres', 'redis'],
     links=[
         link('http://localhost:8090',  'Moodle 4.5'),
         link('https://localhost:8453', 'Moodle 4.5 (HTTPS)'),
@@ -74,7 +80,7 @@ dc_resource(
     labels=['application'],
     auto_init=False,
     trigger_mode=TRIGGER_MODE_MANUAL,
-    resource_deps=['mysql', 'postgres'],
+    resource_deps=['mysql', 'postgres', 'redis'],
     links=[
         link('http://localhost:8091',  'Moodle 5.2'),
         link('https://localhost:8454', 'Moodle 5.2 (HTTPS)'),
