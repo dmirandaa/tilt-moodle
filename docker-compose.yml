@@ -97,6 +97,7 @@ services:
       MOODLE_REDIS_HOST: ${MOODLE_REDIS_HOST:-redis}
       MOODLE_REDIS_PORT: ${MOODLE_REDIS_PORT:-6379}
     volumes:
+      - moodle38_www:/var/www/html
       - moodle38_data:/var/www/moodledata
       - moodle38_config:/var/www/moodle_config
     ports:
@@ -143,6 +144,7 @@ services:
       MOODLE_REDIS_HOST: ${MOODLE_REDIS_HOST:-redis}
       MOODLE_REDIS_PORT: ${MOODLE_REDIS_PORT:-6379}
     volumes:
+      - moodle45_www:/var/www/html
       - moodle45_data:/var/www/moodledata
       - moodle45_config:/var/www/moodle_config
     ports:
@@ -189,6 +191,7 @@ services:
       MOODLE_REDIS_HOST: ${MOODLE_REDIS_HOST:-redis}
       MOODLE_REDIS_PORT: ${MOODLE_REDIS_PORT:-6379}
     volumes:
+      - moodle52_www:/var/www/html
       - moodle52_data:/var/www/moodledata
       - moodle52_config:/var/www/moodle_config
     ports:
@@ -261,10 +264,13 @@ networks:
 volumes:
   mysql_data:
   postgres_data:
+  moodle38_www:
   moodle38_data:
   moodle38_config:
+  moodle45_www:
   moodle45_data:
   moodle45_config:
+  moodle52_www:
   moodle52_data:
   moodle52_config:
   pgadmin_data:
