@@ -1,0 +1,41 @@
+---
+# =============================================================================
+# Shared ConfigMap for Database Credentials and Common Settings
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: moodle-db-config
+  namespace: moodle
+data:
+  # Database user credentials (shared across all databases)
+  DB_USER: ${MOODLE_DB_USER}
+  DB_PASSWORD: ${MOODLE_DB_PASSWORD}
+  DB_PREFIX: ${MOODLE_DB_PREFIX}
+
+  # MySQL configuration
+  MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+  MYSQL_HOST: ${K8S_MYSQL_HOST}
+  MYSQL_PORT: "${K8S_MYSQL_PORT}"
+
+  # PostgreSQL configuration
+  POSTGRES_HOST: ${K8S_POSTGRES_HOST}
+  POSTGRES_PORT: "${K8S_POSTGRES_PORT}"
+  POSTGRES_ADMIN_USER: ${POSTGRES_USER}
+  POSTGRES_DB: ${POSTGRES_DB}
+
+  # Redis configuration
+  REDIS_HOST: ${K8S_REDIS_HOST}
+  REDIS_PORT: "${K8S_REDIS_PORT}"
+  REDIS_SESSION: "${MOODLE_REDIS_SESSION}"
+
+  # Admin UI credentials
+  PGADMIN_EMAIL: ${PGADMIN_EMAIL}
+  PGADMIN_PASSWORD: ${PGADMIN_PASSWORD}
+
+  # PHP/Apache configuration
+  PHP_UPLOAD_MAX_FILESIZE: 2G
+  PHP_POST_MAX_SIZE: 2G
+  PHP_MEMORY_LIMIT: 1G
+  PHP_MAX_INPUT_VARS: "5000"
+  PHP_MAX_EXECUTION_TIME: "600"

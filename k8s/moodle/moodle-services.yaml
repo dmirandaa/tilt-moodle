@@ -1,0 +1,72 @@
+---
+# =============================================================================
+# Moodle Services
+# =============================================================================
+
+# ── Moodle 3.8 Service ─────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: moodle38-service
+  namespace: moodle
+  labels:
+    app: moodle38
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+    - port: 443
+      targetPort: 443
+      protocol: TCP
+      name: https
+  selector:
+    app: moodle38
+  type: ClusterIP
+
+---
+# ── Moodle 4.5 Service ─────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: moodle45-service
+  namespace: moodle
+  labels:
+    app: moodle45
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+    - port: 443
+      targetPort: 443
+      protocol: TCP
+      name: https
+  selector:
+    app: moodle45
+  type: ClusterIP
+
+---
+# ── Moodle 5.2 Service ─────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: moodle52-service
+  namespace: moodle
+  labels:
+    app: moodle52
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+    - port: 443
+      targetPort: 443
+      protocol: TCP
+      name: https
+  selector:
+    app: moodle52
+  type: ClusterIP

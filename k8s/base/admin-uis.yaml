@@ -1,0 +1,187 @@
+---
+# =============================================================================
+# phpMyAdmin Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phpmyadmin
+  namespace: moodle
+  labels:
+    app: phpmyadmin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phpmyadmin
+  template:
+    metadata:
+      labels:
+        app: phpmyadmin
+    spec:
+      containers:
+        - name: phpmyadmin
+          image: phpmyadmin:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              name: http
+          env:
+            - name: PMA_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: MYSQL_HOST
+            - name: PMA_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: MYSQL_PORT
+            - name: PMA_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: DB_USER
+            - name: PMA_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: DB_PASSWORD
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: MYSQL_ROOT_PASSWORD
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            limits:
+              memory: 256Mi
+            requests:
+              memory: 128Mi
+
+---
+# =============================================================================
+# phpMyAdmin Service
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: phpmyadmin-service
+  namespace: moodle
+  labels:
+    app: phpmyadmin
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+  selector:
+    app: phpmyadmin
+  type: ClusterIP
+
+---
+# =============================================================================
+# pgAdmin Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgadmin
+  namespace: moodle
+  labels:
+    app: pgadmin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pgadmin
+  template:
+    metadata:
+      labels:
+        app: pgadmin
+    spec:
+      containers:
+        - name: pgadmin
+          image: dpage/pgadmin4:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              name: http
+          env:
+            - name: PGADMIN_DEFAULT_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: PGADMIN_EMAIL
+            - name: PGADMIN_DEFAULT_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: PGADMIN_PASSWORD
+            - name: PGADMIN_LISTEN_PORT
+              value: "80"
+          volumeMounts:
+            - name: pgadmin-data
+              mountPath: /var/lib/pgadmin
+          livenessProbe:
+            httpGet:
+              path: /misc/ping
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /misc/ping
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 256Mi
+      volumes:
+        - name: pgadmin-data
+          persistentVolumeClaim:
+            claimName: pgadmin-data
+
+---
+# =============================================================================
+# pgAdmin Service
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgadmin-service
+  namespace: moodle
+  labels:
+    app: pgadmin
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+  selector:
+    app: pgadmin
+  type: ClusterIP

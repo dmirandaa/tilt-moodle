@@ -8,9 +8,9 @@
 # =============================================================================
 
 services:
-  # ── MySQL 8 ────────────────────────────────────────────────────────────────
+  # ── MySQL 8.4 ──────────────────────────────────────────────────────────────
   mysql:
-    image: mysql:8.0
+    image: mysql:8.4
     container_name: moodle_mysql
     restart: unless-stopped
     environment:
@@ -34,7 +34,7 @@ services:
 
   # ── PostgreSQL ─────────────────────────────────────────────────────────────
   postgres:
-    image: postgres:16
+    image: postgres:17
     container_name: moodle_postgres
     restart: unless-stopped
     environment:
@@ -101,10 +101,11 @@ services:
       - moodle38_data:/var/www/moodledata
       - moodle38_config:/var/www/moodle_config
     ports:
-      - "${MOODLE_PORT:-8080}:80"
-      - "${MOODLE_HTTPS_PORT:-8443}:443"
+      - "${MOODLE38_PORT:-8080}:80"
+      - "${MOODLE38_HTTPS_PORT:-8443}:443"
     networks:
       - moodle_net
+    mem_limit: 8g
 
   # ── Moodle 4.5 (on-demand, profile: moodle45) ───────────────────────────────
   # Start with: docker compose --profile moodle45 up
@@ -152,7 +153,7 @@ services:
       - "${MOODLE45_HTTPS_PORT:-8453}:443"
     networks:
       - moodle_net
-
+    mem_limit: 8g
   # ── Moodle 5.2 (on-demand, profile: moodle52) ───────────────────────────────
   # Start with: docker compose --profile moodle52 up
   # HTTP  → http://localhost:8091
@@ -162,7 +163,7 @@ services:
     build:
       context: ./moodle
       args:
-        PHP_VERSION: "8.3"
+        PHP_VERSION: "8.4"
         MOODLE_BRANCH: MOODLE_502_STABLE
     container_name: moodle52_app
     restart: unless-stopped
@@ -199,7 +200,7 @@ services:
       - "${MOODLE52_HTTPS_PORT:-8454}:443"
     networks:
       - moodle_net
-
+    mem_limit: 8g
   # ── Redis ──────────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine

@@ -1,0 +1,32 @@
+---
+# =============================================================================
+# ConfigMap for MySQL Initialization Script
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init-script
+  namespace: moodle
+data:
+  init.sql: |
+    -- =============================================================================
+    -- MySQL init — extra databases for on-demand Moodle instances
+    -- =============================================================================
+    CREATE DATABASE IF NOT EXISTS moodle38
+        CHARACTER SET utf8mb4
+        COLLATE utf8mb4_unicode_ci;
+
+    CREATE DATABASE IF NOT EXISTS moodle45
+        CHARACTER SET utf8mb4
+        COLLATE utf8mb4_unicode_ci;
+
+    CREATE DATABASE IF NOT EXISTS moodle52
+        CHARACTER SET utf8mb4
+        COLLATE utf8mb4_unicode_ci;
+
+    -- Grant the shared Moodle DB user access to all databases.
+    GRANT ALL PRIVILEGES ON moodle38.* TO 'moodle'@'%';
+    GRANT ALL PRIVILEGES ON moodle45.* TO 'moodle'@'%';
+    GRANT ALL PRIVILEGES ON moodle52.* TO 'moodle'@'%';
+
+    FLUSH PRIVILEGES;

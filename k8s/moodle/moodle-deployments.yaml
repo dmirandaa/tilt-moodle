@@ -1,0 +1,540 @@
+---
+# =============================================================================
+# Moodle 3.8 Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: moodle38
+  namespace: moodle
+  labels:
+    app: moodle38
+    version: "38"
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: moodle38
+  template:
+    metadata:
+      labels:
+        app: moodle38
+    spec:
+      # Wait for required services to be ready
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox:1.28
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z mysql-service 3306; do
+                echo "waiting for mysql-service..."
+                sleep 2
+              done
+        - name: wait-for-postgres
+          image: busybox:1.28
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z postgres-service 5432; do
+                echo "waiting for postgres-service..."
+                sleep 2
+              done
+        - name: wait-for-redis
+          image: busybox:1.28
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z redis-service 6379; do
+                echo "waiting for redis-service..."
+                sleep 2
+              done
+      containers:
+        - name: moodle38
+          image: tilt-moodle:moodle38
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
+              name: http
+            - containerPort: 443
+              name: https
+          env:
+            # Database configuration
+            - name: MOODLE_DB_TYPE
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE38_DB_TYPE
+            - name: MOODLE_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE38_DB_HOST
+            - name: MOODLE_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE38_DB_PORT
+            - name: MOODLE_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE38_DB_NAME
+            - name: MOODLE_DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: DB_USER
+            - name: MOODLE_DB_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: DB_PASSWORD
+            - name: MOODLE_DB_PREFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: DB_PREFIX
+            # Moodle site configuration
+            - name: MOODLE_WWWROOT
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE38_WWW_ROOT
+            - name: MOODLE_ADMIN_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE38_ADMIN_USER
+            - name: MOODLE_ADMIN_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE38_ADMIN_PASSWORD
+            - name: MOODLE_ADMIN_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE38_ADMIN_EMAIL
+            - name: MOODLE_SITE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE38_SITE_NAME
+            - name: MOODLE_SITE_SHORTNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE38_SITE_SHORTNAME
+            - name: MOODLE_SESSION_COOKIE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE38_SESSION_COOKIE_NAME
+            # Redis configuration
+            - name: MOODLE_REDIS_SESSION
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: REDIS_SESSION
+            - name: MOODLE_REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: REDIS_HOST
+            - name: MOODLE_REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: REDIS_PORT
+          volumeMounts:
+            - name: moodle38-data
+              mountPath: /var/www/moodledata
+            - name: moodle38-config
+              mountPath: /var/www/moodle_config
+            - name: moodle-tls
+              mountPath: /etc/ssl/certs/moodle-selfsigned.crt
+              subPath: tls.crt
+              readOnly: true
+            - name: moodle-tls
+              mountPath: /etc/ssl/private/moodle-selfsigned.key
+              subPath: tls.key
+              readOnly: true
+          resources:
+            limits:
+              memory: 8Gi
+            requests:
+              memory: 4Gi
+      volumes:
+        - name: moodle38-data
+          persistentVolumeClaim:
+            claimName: moodle38-data
+        - name: moodle38-config
+          persistentVolumeClaim:
+            claimName: moodle38-config
+        - name: moodle-tls
+          secret:
+            secretName: moodle-localhost-tls
+
+---
+# =============================================================================
+# Moodle 4.5 Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: moodle45
+  namespace: moodle
+  labels:
+    app: moodle45
+    version: "45"
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: moodle45
+  template:
+    metadata:
+      labels:
+        app: moodle45
+    spec:
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox:1.28
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z mysql-service 3306; do
+                echo "waiting for mysql-service..."
+                sleep 2
+              done
+        - name: wait-for-postgres
+          image: busybox:1.28
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z postgres-service 5432; do
+                echo "waiting for postgres-service..."
+                sleep 2
+              done
+        - name: wait-for-redis
+          image: busybox:1.28
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z redis-service 6379; do
+                echo "waiting for redis-service..."
+                sleep 2
+              done
+      containers:
+        - name: moodle45
+          image: tilt-moodle:moodle45
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
+              name: http
+            - containerPort: 443
+              name: https
+          env:
+            - name: MOODLE_DB_TYPE
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE45_DB_TYPE
+            - name: MOODLE_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE45_DB_HOST
+            - name: MOODLE_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE45_DB_PORT
+            - name: MOODLE_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE45_DB_NAME
+            - name: MOODLE_DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: DB_USER
+            - name: MOODLE_DB_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: DB_PASSWORD
+            - name: MOODLE_DB_PREFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: DB_PREFIX
+            - name: MOODLE_WWWROOT
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE45_WWW_ROOT
+            - name: MOODLE_ADMIN_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE45_ADMIN_USER
+            - name: MOODLE_ADMIN_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE45_ADMIN_PASSWORD
+            - name: MOODLE_ADMIN_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE45_ADMIN_EMAIL
+            - name: MOODLE_SITE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE45_SITE_NAME
+            - name: MOODLE_SITE_SHORTNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE45_SITE_SHORTNAME
+            - name: MOODLE_SESSION_COOKIE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE45_SESSION_COOKIE_NAME
+            - name: MOODLE_REDIS_SESSION
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: REDIS_SESSION
+            - name: MOODLE_REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: REDIS_HOST
+            - name: MOODLE_REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: REDIS_PORT
+          volumeMounts:
+            - name: moodle45-data
+              mountPath: /var/www/moodledata
+            - name: moodle45-config
+              mountPath: /var/www/moodle_config
+            - name: moodle-tls
+              mountPath: /etc/ssl/certs/moodle-selfsigned.crt
+              subPath: tls.crt
+              readOnly: true
+            - name: moodle-tls
+              mountPath: /etc/ssl/private/moodle-selfsigned.key
+              subPath: tls.key
+              readOnly: true
+          resources:
+            limits:
+              memory: 8Gi
+            requests:
+              memory: 4Gi
+      volumes:
+        - name: moodle45-data
+          persistentVolumeClaim:
+            claimName: moodle45-data
+        - name: moodle45-config
+          persistentVolumeClaim:
+            claimName: moodle45-config
+        - name: moodle-tls
+          secret:
+            secretName: moodle-localhost-tls
+
+---
+# =============================================================================
+# Moodle 5.2 Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: moodle52
+  namespace: moodle
+  labels:
+    app: moodle52
+    version: "52"
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: moodle52
+  template:
+    metadata:
+      labels:
+        app: moodle52
+    spec:
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox:1.28
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z mysql-service 3306; do
+                echo "waiting for mysql-service..."
+                sleep 2
+              done
+        - name: wait-for-postgres
+          image: busybox:1.28
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z postgres-service 5432; do
+                echo "waiting for postgres-service..."
+                sleep 2
+              done
+        - name: wait-for-redis
+          image: busybox:1.28
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z redis-service 6379; do
+                echo "waiting for redis-service..."
+                sleep 2
+              done
+      containers:
+        - name: moodle52
+          image: tilt-moodle:moodle52
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
+              name: http
+            - containerPort: 443
+              name: https
+          env:
+            - name: MOODLE_DB_TYPE
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE52_DB_TYPE
+            - name: MOODLE_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE52_DB_HOST
+            - name: MOODLE_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE52_DB_PORT
+            - name: MOODLE_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE52_DB_NAME
+            - name: MOODLE_DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: DB_USER
+            - name: MOODLE_DB_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: DB_PASSWORD
+            - name: MOODLE_DB_PREFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: DB_PREFIX
+            - name: MOODLE_WWWROOT
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE52_WWW_ROOT
+            - name: MOODLE_ADMIN_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE52_ADMIN_USER
+            - name: MOODLE_ADMIN_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE52_ADMIN_PASSWORD
+            - name: MOODLE_ADMIN_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE52_ADMIN_EMAIL
+            - name: MOODLE_SITE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE52_SITE_NAME
+            - name: MOODLE_SITE_SHORTNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE52_SITE_SHORTNAME
+            - name: MOODLE_SESSION_COOKIE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-app-config
+                  key: MOODLE52_SESSION_COOKIE_NAME
+            - name: MOODLE_REDIS_SESSION
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: REDIS_SESSION
+            - name: MOODLE_REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: REDIS_HOST
+            - name: MOODLE_REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: moodle-db-config
+                  key: REDIS_PORT
+          volumeMounts:
+            - name: moodle52-data
+              mountPath: /var/www/moodledata
+            - name: moodle52-config
+              mountPath: /var/www/moodle_config
+            - name: moodle-tls
+              mountPath: /etc/ssl/certs/moodle-selfsigned.crt
+              subPath: tls.crt
+              readOnly: true
+            - name: moodle-tls
+              mountPath: /etc/ssl/private/moodle-selfsigned.key
+              subPath: tls.key
+              readOnly: true
+          resources:
+            limits:
+              memory: 8Gi
+            requests:
+              memory: 4Gi
+      volumes:
+        - name: moodle52-data
+          persistentVolumeClaim:
+            claimName: moodle52-data
+        - name: moodle52-config
+          persistentVolumeClaim:
+            claimName: moodle52-config
+        - name: moodle-tls
+          secret:
+            secretName: moodle-localhost-tls

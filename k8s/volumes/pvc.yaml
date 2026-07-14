@@ -1,0 +1,399 @@
+---
+# =============================================================================
+# Persistent Volume Claims for all services
+# =============================================================================
+
+# ── MySQL Data PVC ────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-data-pv
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/moodle-volumes/mysql-data
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - minikube
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-data
+  namespace: moodle
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  volumeName: mysql-data-pv
+  resources:
+    requests:
+      storage: 20Gi
+
+---
+# ── PostgreSQL Data PVC ────────────────────────────────────────────────────────
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-data-pv
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/moodle-volumes/postgres-data
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - minikube
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: moodle
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  volumeName: postgres-data-pv
+  resources:
+    requests:
+      storage: 20Gi
+
+---
+# ── Redis Data PVC ────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-data-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/moodle-volumes/redis-data
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - minikube
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-data
+  namespace: moodle
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  volumeName: redis-data-pv
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+# ── pgAdmin Data PVC ───────────────────────────────────────────────────────────
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pgadmin-data-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/moodle-volumes/pgadmin-data
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - minikube
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pgadmin-data
+  namespace: moodle
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  volumeName: pgadmin-data-pv
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+# ── Moodle 3.8 Data PV ────────────────────────────────────────────────────────────
+# Uses local hostPath to persist across tilt down/up cycles
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: moodle38-data-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/moodle-volumes/moodle38-data
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - minikube
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: moodle38-data
+  namespace: moodle
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  volumeName: moodle38-data-pv
+  resources:
+    requests:
+      storage: 50Gi
+
+---
+# ── Moodle 3.8 Config PV ────────────────────────────────────────────────────────
+# Uses local hostPath to persist across tilt down/up cycles
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: moodle38-config-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/moodle-volumes/moodle38-config
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - minikube
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: moodle38-config
+  namespace: moodle
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  volumeName: moodle38-config-pv
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+# ── Moodle 4.5 Data PV ────────────────────────────────────────────────────────────
+# Uses local hostPath to persist across tilt down/up cycles
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: moodle45-data-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/moodle-volumes/moodle45-data
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - minikube
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: moodle45-data
+  namespace: moodle
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  volumeName: moodle45-data-pv
+  resources:
+    requests:
+      storage: 50Gi
+
+---
+# ── Moodle 4.5 Config PV ────────────────────────────────────────────────────────
+# Uses local hostPath to persist across tilt down/up cycles
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: moodle45-config-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/moodle-volumes/moodle45-config
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - minikube
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: moodle45-config
+  namespace: moodle
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  volumeName: moodle45-config-pv
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+# ── Moodle 5.2 Data PV ────────────────────────────────────────────────────────────
+# Uses local hostPath to persist across tilt down/up cycles
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: moodle52-data-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/moodle-volumes/moodle52-data
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - minikube
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: moodle52-data
+  namespace: moodle
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  volumeName: moodle52-data-pv
+  resources:
+    requests:
+      storage: 50Gi
+
+---
+# ── Moodle 5.2 Config PV ────────────────────────────────────────────────────────
+# Uses local hostPath to persist across tilt down/up cycles
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: moodle52-config-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/moodle-volumes/moodle52-config
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - minikube
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: moodle52-config
+  namespace: moodle
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  volumeName: moodle52-config-pv
+  resources:
+    requests:
+      storage: 1Gi

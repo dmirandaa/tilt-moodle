@@ -1,0 +1,30 @@
+---
+# =============================================================================
+# ConfigMap for PostgreSQL Initialization Script
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-script
+  namespace: moodle
+data:
+  init.sh: |
+    #!/bin/bash
+    set -e
+
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" <<-EOSQL
+        SELECT 'CREATE DATABASE moodle38'
+            WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'moodle38')\gexec
+
+        SELECT 'CREATE DATABASE moodle45'
+            WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'moodle45')\gexec
+
+        SELECT 'CREATE DATABASE moodle52'
+            WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'moodle52')\gexec
+
+        GRANT ALL PRIVILEGES ON DATABASE moodle38 TO "$POSTGRES_USER";
+        GRANT ALL PRIVILEGES ON DATABASE moodle45 TO "$POSTGRES_USER";
+        GRANT ALL PRIVILEGES ON DATABASE moodle52 TO "$POSTGRES_USER";
+    EOSQL
+
+    echo "[postgres-init] Databases moodle38, moodle45, and moodle52 are ready."
