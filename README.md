@@ -3,6 +3,7 @@
 This repository runs a local multi-version Moodle platform on Minikube using Tilt.
 
 It provides:
+
 - Moodle 3.8 (PHP 7.4)
 - Moodle 4.5 (PHP 8.2)
 - Moodle 5.2 (PHP 8.4)
@@ -28,6 +29,7 @@ It provides:
 - WSL2 (works, but Docker/Minikube networking setup must be correct)
 
 Windows compatibility disclaimer:
+
 - Native Windows (without WSL2) is not fully supported and may have compatibility issues with tooling, filesystem behavior, and local networking.
 - For Windows hosts, use WSL2 and run the full stack from inside the Linux environment.
 
@@ -87,6 +89,7 @@ mkcert -install
 ```
 
 Notes for macOS:
+
 - Docker Desktop is required for the Docker driver.
 - If `brew install docker` does not provide the CLI in your shell, install Docker Desktop and ensure `docker` is in `PATH`.
 
@@ -119,6 +122,7 @@ cp .env.example .env
 Edit `.env` as needed.
 
 Most important variables:
+
 - Moodle ports: `MOODLE38_PORT`, `MOODLE45_PORT`, `MOODLE52_PORT`
 - Moodle HTTPS ports: `MOODLE38_HTTPS_PORT`, `MOODLE45_HTTPS_PORT`, `MOODLE52_HTTPS_PORT`
 - DB backend choice: `MOODLE_DB_TYPE` (`mysqli` or `pgsql`)
@@ -127,8 +131,19 @@ Most important variables:
 ## 3. Start Minikube
 
 ```bash
-minikube start --cpus=4 --memory=8192 --driver=docker
+minikube start --cpus=4 --memory=8192 --driver=docker --container-runtime=docker
 ```
+
+The Docker runtime is required for the local `docker-env` workflow. If the
+existing Minikube profile reports `containerd`, recreate it first:
+
+```bash
+minikube delete
+minikube start --cpus=4 --memory=8192 --driver=docker --container-runtime=docker
+```
+
+This removes the Minikube cluster and its in-cluster data. Re-run the volume
+setup below afterward.
 
 When running Tilt from WSL, point Docker at Minikube before starting Tilt so
 images stay local and are not pushed to Docker Hub:
@@ -162,6 +177,7 @@ mkcert -install
 Tilt also runs automatic TLS setup through `scripts/setup-localhost-cert.sh`.
 
 That script:
+
 - Generates localhost cert and key in `.certs/`
 - Imports CA into Chrome and Firefox NSS DBs when possible
 - Imports CA into system trust store when permission is available
@@ -178,6 +194,7 @@ Tilt UI opens at:
 - http://localhost:10350
 
 Behavior on startup:
+
 - Databases and admin UIs start automatically
 - Moodle instances are manual trigger resources
 
@@ -235,6 +252,7 @@ kubectl rollout restart deployment/redis -n moodle
 ## Reset a Moodle Database from Tilt Local Resources
 
 Use Tilt UI local resources:
+
 - `reset-mysql-moodle38-db`
 - `reset-mysql-moodle45-db`
 - `reset-mysql-moodle52-db`
@@ -268,6 +286,7 @@ This stack uses static Kubernetes PersistentVolumes with `Retain` policy for all
 Data survives `tilt down` and `tilt up` cycles.
 
 Volume data paths inside Minikube host:
+
 - `/mnt/moodle-volumes/mysql-data`
 - `/mnt/moodle-volumes/postgres-data`
 - `/mnt/moodle-volumes/redis-data`
@@ -280,6 +299,7 @@ Volume data paths inside Minikube host:
 - `/mnt/moodle-volumes/moodle52-config`
 
 Moodle config behavior:
+
 - On first install, `config.php` is created by CLI installer
 - Canonical persisted copy is stored in `/var/www/moodle_config/config.php`
 - On next startup, persisted config is restored to `/var/www/html/config.php`
@@ -296,6 +316,7 @@ tilt up
 ## Work on Moodle Source
 
 Edit files in:
+
 - `moodlefiles/moodle38`
 - `moodlefiles/moodle45`
 - `moodlefiles/moodle52`
