@@ -130,6 +130,16 @@ Most important variables:
 minikube start --cpus=4 --memory=8192 --driver=docker
 ```
 
+When running Tilt from WSL, point Docker at Minikube before starting Tilt so
+images stay local and are not pushed to Docker Hub:
+
+```bash
+eval $(minikube docker-env)
+```
+
+Run this in the same WSL shell that will run `tilt up`. No Docker Hub
+repository or registry login is required.
+
 ## 4. Prepare Volumes and Local Moodle Source
 
 ```bash
@@ -138,6 +148,7 @@ chmod +x ./scripts/setup-volumes.sh
 ```
 
 What this does:
+
 - Ensures local source trees exist in `moodlefiles/moodle38`, `moodlefiles/moodle45`, `moodlefiles/moodle52`
 - Clones Moodle branches when missing
 - Creates required hostPath directories in Minikube under `/mnt/moodle-volumes/...`
